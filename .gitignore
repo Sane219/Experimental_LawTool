@@ -1,0 +1,102 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE and Editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Testing and Coverage
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Temporary files and logs
+*.log
+temp/
+tmp/
+logs/*.log
+
+# Generated reports (keep structure, ignore content)
+test_*.json
+test_*.html
+*_report.html
+*_report.json
+benchmark.json
+
+# Model cache and downloads
+models/
+.cache/
+.transformers_cache/
+
+# Streamlit specific
+.streamlit/secrets.toml
+
+# Development tools
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+
+# Kiro IDE (exclude from GitHub)
+.kiro/
+
+# Keep these files for Streamlit hosting:
+# - requirements.txt (ESSENTIAL)
+# - app.py (ESSENTIAL)
+# - src/ directory (ESSENTIAL)
+# - .env.example (for configuration reference)
+# - README.md (for documentation)
+# - SECURITY.md (for security info)
