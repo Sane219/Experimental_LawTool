@@ -11,26 +11,182 @@ import os
 from datetime import datetime
 from typing import Optional
 
-# Add the current directory to Python path for Streamlit Cloud compatibility
-current_dir = os.path.dirname(os.path.abspath(__file__))
-if current_dir not in sys.path:
-    sys.path.insert(0, current_dir)
+# Multiple strategies to fix import issues on Streamlit Cloud
+def fix_imports():
+    """Fix import paths for Streamlit Cloud compatibility."""
+    # Strategy 1: Add current directory and parent directory
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    parent_dir = os.path.dirname(current_dir)
+    
+    for path in [current_dir, parent_dir]:
+        if path not in sys.path:
+            sys.path.insert(0, path)
+    
+    # Strategy 2: Add src directory explicitly
+    src_dir = os.path.join(current_dir, 'src')
+    if os.path.exists(src_dir) and src_dir not in sys.path:
+        sys.path.insert(0, src_dir)
+    
+    # Strategy 3: Set PYTHONPATH environment variable
+    current_pythonpath = os.environ.get('PYTHONPATH', '')
+    new_paths = [current_dir, src_dir]
+    for path in new_paths:
+        if path not in current_pythonpath:
+            current_pythonpath = f"{path}:{current_pythonpath}" if current_pythonpath else path
+    os.environ['PYTHONPATH'] = current_pythonpath
 
-try:
-    from src.models.data_models import SummaryParams, ProcessingState
-    from src.services.document_handler import DocumentHandler
-    from src.services.text_extractor import TextExtractor
-    from src.services.summarizer import LegalSummarizer
-    from src.services.output_handler import OutputHandler
-    from src.services.security_service import get_security_service
-    from src.utils.error_handler import ErrorHandler
-    from src.utils.config import Config
-    from src.utils.secure_logging import get_secure_logger
-    from src.utils.https_config import setup_streamlit_https
-except ImportError as e:
-    st.error(f"Import Error: {e}")
-    st.error("Please ensure all required modules are properly installed and accessible.")
+# Apply import fixes
+fix_imports()
+
+# Import with multiple fallback strategies
+def safe_import():
+    """Safely import modules with multiple strategies."""
+    import_errors = []
+    
+    # Strategy 1: Direct imports
+    try:
+        from src.models.data_models import SummaryParams, ProcessingState
+        from src.services.document_handler import DocumentHandler
+        from src.services.text_extractor import TextExtractor
+        from src.services.summarizer import LegalSummarizer
+        from src.services.output_handler import OutputHandler
+        from src.services.security_service import get_security_service
+        from src.utils.error_handler import ErrorHandler
+        from src.utils.config import Config
+        from src.utils.secure_logging import get_secure_logger
+        from src.utils.https_config import setup_streamlit_https
+        return {
+            'SummaryParams': SummaryParams,
+            'ProcessingState': ProcessingState,
+            'DocumentHandler': DocumentHandler,
+            'TextExtractor': TextExtractor,
+            'LegalSummarizer': LegalSummarizer,
+            'OutputHandler': OutputHandler,
+            'get_security_service': get_security_service,
+            'ErrorHandler': ErrorHandler,
+            'Config': Config,
+            'get_secure_logger': get_secure_logger,
+            'setup_streamlit_https': setup_streamlit_https
+        }
+    except ImportError as e:
+        import_errors.append(f"Strategy 1 failed: {e}")
+    
+    # Strategy 2: Relative imports
+    try:
+        import src.models.data_models as data_models
+        import src.services.document_handler as document_handler
+        import src.services.text_extractor as text_extractor
+        import src.services.summarizer as summarizer
+        import src.services.output_handler as output_handler
+        import src.services.security_service as security_service
+        import src.utils.error_handler as error_handler
+        import src.utils.config as config
+        import src.utils.secure_logging as secure_logging
+        import src.utils.https_config as https_config
+        
+        return {
+            'SummaryParams': data_models.SummaryParams,
+            'ProcessingState': data_models.ProcessingState,
+            'DocumentHandler': document_handler.DocumentHandler,
+            'TextExtractor': text_extractor.TextExtractor,
+            'LegalSummarizer': summarizer.LegalSummarizer,
+            'OutputHandler': output_handler.OutputHandler,
+            'get_security_service': security_service.get_security_service,
+            'ErrorHandler': error_handler.ErrorHandler,
+            'Config': config.Config,
+            'get_secure_logger': secure_logging.get_secure_logger,
+            'setup_streamlit_https': https_config.setup_streamlit_https
+        }
+    except ImportError as e:
+        import_errors.append(f"Strategy 2 failed: {e}")
+    
+    # Strategy 3: Add src to path and try again
+    try:
+        import importlib.util
+        import sys
+        
+        # Dynamically load modules
+        modules = {}
+        module_paths = {
+            'data_models': 'src/models/data_models.py',
+            'document_handler': 'src/services/document_handler.py',
+            'text_extractor': 'src/services/text_extractor.py',
+            'summarizer': 'src/services/summarizer.py',
+            'output_handler': 'src/services/output_handler.py',
+            'security_service': 'src/services/security_service.py',
+            'error_handler': 'src/utils/error_handler.py',
+            'config': 'src/utils/config.py',
+            'secure_logging': 'src/utils/secure_logging.py',
+            'https_config': 'src/utils/https_config.py'
+        }
+        
+        for module_name, module_path in module_paths.items():
+            if os.path.exists(module_path):
+                spec = importlib.util.spec_from_file_location(module_name, module_path)
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+                modules[module_name] = module
+        
+        if len(modules) == len(module_paths):
+            return {
+                'SummaryParams': modules['data_models'].SummaryParams,
+                'ProcessingState': modules['data_models'].ProcessingState,
+                'DocumentHandler': modules['document_handler'].DocumentHandler,
+                'TextExtractor': modules['text_extractor'].TextExtractor,
+                'LegalSummarizer': modules['summarizer'].LegalSummarizer,
+                'OutputHandler': modules['output_handler'].OutputHandler,
+                'get_security_service': modules['security_service'].get_security_service,
+                'ErrorHandler': modules['error_handler'].ErrorHandler,
+                'Config': modules['config'].Config,
+                'get_secure_logger': modules['secure_logging'].get_secure_logger,
+                'setup_streamlit_https': modules['https_config'].setup_streamlit_https
+            }
+    except Exception as e:
+        import_errors.append(f"Strategy 3 failed: {e}")
+    
+    # If all strategies fail, show detailed error information
+    st.error("❌ **Import Error**: Unable to load required modules")
+    st.error("**Debugging Information:**")
+    
+    with st.expander("🔍 Import Error Details", expanded=True):
+        st.write("**Python Path:**")
+        for i, path in enumerate(sys.path[:10]):
+            st.write(f"{i+1}. {path}")
+        
+        st.write("**Current Directory:**", os.getcwd())
+        st.write("**File Location:**", os.path.dirname(os.path.abspath(__file__)))
+        
+        st.write("**Import Attempts:**")
+        for error in import_errors:
+            st.write(f"• {error}")
+        
+        st.write("**Available Files:**")
+        for root, dirs, files in os.walk('.'):
+            if 'src' in root and any(f.endswith('.py') for f in files):
+                st.write(f"📁 {root}: {[f for f in files if f.endswith('.py')]}")
+    
+    st.info("💡 **Suggested Solutions:**")
+    st.write("1. Try using `standalone_app.py` as the main file")
+    st.write("2. Check that all source files are properly uploaded to the repository")
+    st.write("3. Verify the directory structure matches the expected layout")
+    
     st.stop()
+
+# Perform safe import
+imported_modules = safe_import()
+
+# Extract imported modules
+SummaryParams = imported_modules['SummaryParams']
+ProcessingState = imported_modules['ProcessingState']
+DocumentHandler = imported_modules['DocumentHandler']
+TextExtractor = imported_modules['TextExtractor']
+LegalSummarizer = imported_modules['LegalSummarizer']
+OutputHandler = imported_modules['OutputHandler']
+get_security_service = imported_modules['get_security_service']
+ErrorHandler = imported_modules['ErrorHandler']
+Config = imported_modules['Config']
+get_secure_logger = imported_modules['get_secure_logger']
+setup_streamlit_https = imported_modules['setup_streamlit_https']
 
 
 class LegalDocumentSummarizerApp:
