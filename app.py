@@ -6,19 +6,31 @@ This is the entry point for the web application.
 import streamlit as st
 import time
 import io
+import sys
+import os
 from datetime import datetime
 from typing import Optional
 
-from src.models.data_models import SummaryParams, ProcessingState
-from src.services.document_handler import DocumentHandler
-from src.services.text_extractor import TextExtractor
-from src.services.summarizer import LegalSummarizer
-from src.services.output_handler import OutputHandler
-from src.services.security_service import get_security_service
-from src.utils.error_handler import ErrorHandler
-from src.utils.config import Config
-from src.utils.secure_logging import get_secure_logger
-from src.utils.https_config import setup_streamlit_https
+# Add the current directory to Python path for Streamlit Cloud compatibility
+current_dir = os.path.dirname(os.path.abspath(__file__))
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
+
+try:
+    from src.models.data_models import SummaryParams, ProcessingState
+    from src.services.document_handler import DocumentHandler
+    from src.services.text_extractor import TextExtractor
+    from src.services.summarizer import LegalSummarizer
+    from src.services.output_handler import OutputHandler
+    from src.services.security_service import get_security_service
+    from src.utils.error_handler import ErrorHandler
+    from src.utils.config import Config
+    from src.utils.secure_logging import get_secure_logger
+    from src.utils.https_config import setup_streamlit_https
+except ImportError as e:
+    st.error(f"Import Error: {e}")
+    st.error("Please ensure all required modules are properly installed and accessible.")
+    st.stop()
 
 
 class LegalDocumentSummarizerApp:
