@@ -75,8 +75,9 @@ test_*.html
 *_report.json
 benchmark.json
 
-# Model cache and downloads
+# Model cache and downloads (but allow src/models/)
 models/
+!src/models/
 .cache/
 .transformers_cache/
 
