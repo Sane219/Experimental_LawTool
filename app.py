@@ -305,7 +305,20 @@ class LegalDocumentSummarizerApp:
         
         # Initialize session state
         self._initialize_session_state()
-    
+        
+        # Attempt to preload the AI model on startup for better user experience
+        self._preload_model()
+
+    def _preload_model(self):
+        """Preload the model for quicker response times on initial request."""
+        if not st.session_state.model_loaded:
+            try:
+                self.summarizer.load_model()
+                st.session_state.model_loaded = True
+                self.logger.info("AI model preloaded successfully")
+            except Exception as e:
+                self.logger.error(f"Failed to preload AI model: {str(e)}")
+
     def _initialize_session_state(self):
         """Initialize Streamlit session state variables."""
         if 'processing_state' not in st.session_state:
