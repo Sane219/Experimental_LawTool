@@ -235,23 +235,29 @@ def safe_import():
         def handle_validation_error(self, e): return type('obj', (object,), {'message': str(e)})()
         def handle_model_error(self, e): return type('obj', (object,), {'message': str(e)})()
     
-    def mock_security_service():
-        return type('obj', (object,), {
-            'generate_session_id': lambda: 'mock_session',
-            'store_session_data': lambda *args: None,
-            'clear_session_data': lambda *args: None,
-            'clear_streamlit_session': lambda: None,
-            'get_security_status': lambda: {'active_sessions': 0, 'temp_files_tracked': 0, 'cleanup_thread_active': False}
-        })()
+    class MockSecurityService:
+        def generate_session_id(self):
+            return 'mock_session'
+        def store_session_data(self, *args):
+            return None
+        def clear_session_data(self, *args):
+            return None
+        def clear_streamlit_session(self):
+            return None
+        def get_security_status(self):
+            return {'active_sessions': 0, 'temp_files_tracked': 0, 'cleanup_thread_active': False}
     
-    def mock_logger():
-        return type('obj', (object,), {
-            'log_document_processing_start': lambda *args: 'mock_session',
-            'log_document_processing_complete': lambda *args: None,
-            'log_security_event': lambda *args: None,
-            'log_error': lambda *args: None,
-            'log_cleanup_operation': lambda *args: None
-        })()
+    class MockLogger:
+        def log_document_processing_start(self, *args):
+            return 'mock_session'
+        def log_document_processing_complete(self, *args):
+            return None
+        def log_security_event(self, *args):
+            return None
+        def log_error(self, *args):
+            return None
+        def log_cleanup_operation(self, *args):
+            return None
     
     def mock_https_setup(): pass
     
@@ -262,10 +268,10 @@ def safe_import():
         'TextExtractor': MockTextExtractor,
         'LegalSummarizer': MockSummarizer,
         'OutputHandler': MockOutputHandler,
-        'get_security_service': lambda: mock_security_service(),
+        'get_security_service': lambda: MockSecurityService(),
         'ErrorHandler': MockErrorHandler,
         'Config': MockConfig,
-        'get_secure_logger': lambda: mock_logger(),
+        'get_secure_logger': lambda: MockLogger(),
         'setup_streamlit_https': mock_https_setup
     }
 
