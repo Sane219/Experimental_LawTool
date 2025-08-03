@@ -591,11 +591,22 @@ class LegalDocumentSummarizerApp:
                 with st.spinner("🤖 Loading AI model... This may take a moment."):
                     self.summarizer.load_model()
                     st.session_state.model_loaded = True
-                    st.success("AI model loaded successfully!")
+                    st.success("✅ AI model loaded successfully!")
             except Exception as e:
-                error_msg = self.error_handler.handle_model_error(e)
-                st.session_state.error_message = error_msg
-                return False
+                st.warning("⚠️ AI model loading failed. Switching to simplified summarizer...")
+                
+                # Fallback to simple summarizer from standalone app
+                try:
+                    from standalone_app import SimpleSummarizer
+                    self.summarizer = SimpleSummarizer()
+                    st.session_state.model_loaded = True
+                    st.info("📝 Using simplified summarizer for reliable performance")
+                    return True
+                except Exception as fallback_error:
+                    error_msg = self.error_handler.handle_model_error(e)
+                    st.session_state.error_message = error_msg
+                    st.error(f"❌ Both AI and fallback models failed: {str(fallback_error)}")
+                    return False
         return True
     
     def process_document(self, uploaded_file, summary_params: SummaryParams):
